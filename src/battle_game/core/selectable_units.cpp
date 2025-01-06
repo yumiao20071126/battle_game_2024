@@ -23,6 +23,7 @@ void GameCore::GeneratePrimaryUnitList() {
    * */
   ADD_SELECTABLE_UNIT(unit::Tank);
   ADD_SELECTABLE_UNIT(unit::yumiao2007);
+  ADD_SELECTABLE_UNIT(unit::yumiao2007_issue);
  // ADD_SELECTABLE_UNIT(unit::yumiao2007);
   
   unit.reset();
