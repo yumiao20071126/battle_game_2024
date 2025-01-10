@@ -2,11 +2,14 @@
 #include "battle_game/core/unit.h"
 
 namespace battle_game::unit {
+
+  extern int energy; 
 class yumiao2007_issue : public Unit {
  public:
   yumiao2007_issue(GameCore *game_core, uint32_t id, uint32_t player_id);
   void Render() override;
   void Update() override;
+  void RenderHelper() override;
   [[nodiscard]] bool IsHit(glm::vec2 position) const override;
 
  protected:

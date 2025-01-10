@@ -2,9 +2,9 @@
 #include "battle_game/core/bullets/bullets.h"
 #include "battle_game/core/game_core.h"
 #include "battle_game/graphics/graphics.h"
-
-
 namespace battle_game::unit {
+
+int energy=10;
 
 namespace {
 uint32_t tank_body_model_index = 0xffffffffu;
@@ -22,9 +22,17 @@ yumiao2007_issue::yumiao2007_issue(GameCore *game_core, uint32_t id, uint32_t pl
       /* Tank Body */
       tank_body_model_index = mgr->RegisterModel(
           {
-        {{-0.8f, 0.8f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}},  // 蓝色
+        // {{-0.8f, 0.8f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}},  // 蓝色
+        //   {{-0.8f, -1.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}}, // 蓝色
+        //   {{0.8f, 0.8f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}},   // 蓝色
+        //   {{0.8f, -1.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}},  // 蓝色
+        //   // distinguish front and back
+        //   {{0.6f, 1.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}},   // 蓝色
+        //   {{-0.6f, 1.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}},  // 蓝色
+        //   },
+          {{-0.6f, 0.8f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}},  // 蓝色
           {{-0.8f, -1.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}}, // 蓝色
-          {{0.8f, 0.8f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}},   // 蓝色
+          {{0.6f, 0.8f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}},   // 蓝色
           {{0.8f, -1.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}},  // 蓝色
           // distinguish front and back
           {{0.6f, 1.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}},   // 蓝色
@@ -74,6 +82,19 @@ yumiao2007_issue::yumiao2007_issue(GameCore *game_core, uint32_t id, uint32_t pl
       tank_turret_model_index =
           mgr->RegisterModel(turret_vertices, turret_indices);
     }
+    
+  }
+   if (!~life_bar_model_index)
+  {
+    auto mgr = AssetsManager::GetInstance();
+    {
+      life_bar_model_index = mgr->RegisterModel(
+          {{{-0.5f, 0.08f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}},
+           {{-0.5f, -0.08f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}},
+           {{0.5f, 0.08f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}},
+           {{0.5f, -0.08f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}}},
+          {0, 1, 2, 1, 2, 3});
+    }
   }
 }
 
@@ -85,6 +106,24 @@ void yumiao2007_issue::Render() {
   battle_game::SetRotation(turret_rotation_);
   battle_game::DrawModel(tank_turret_model_index);
 
+}
+
+void yumiao2007_issue::RenderHelper() {
+  auto parent_unit = game_core_->GetUnit(id_);
+  auto pos = parent_unit->GetPosition() + lifebar_offset_;
+  pos += glm::vec2{0.0f, 0.2f};
+
+  float energy_percentage = static_cast<float>(energy) / 10.0f;
+  glm::vec2 shift_eng = {(float)lifebar_length_ * (1 - energy_percentage) / 2, 0.0f};
+
+  SetTransformation(pos, 0.0f, {lifebar_length_, 1.0f});
+  SetColor(backround_engbar_color_);
+  SetTexture(0);
+  DrawModel(life_bar_model_index);
+
+  SetTransformation(pos - shift_eng, 0.0f, {lifebar_length_ * energy_percentage, 1.0f});
+  SetColor(glm::vec4{0.5f, 0.0f, 0.5f, 1.0f});  // 绿色
+  DrawModel(life_bar_model_index);
 }
 
 void yumiao2007_issue::Update() {
@@ -175,7 +214,7 @@ void yumiao2007_issue::Fire() {
     if (player) {
       auto &input_data = player->GetInputData();
 
-      int energy=10;
+
       glm::vec2 fire_position = position_ + Rotate({0.0f, 1.2f}, turret_rotation_);
       if (input_data.mouse_button_down[GLFW_MOUSE_BUTTON_LEFT]) {
         auto velocity = Rotate(glm::vec2{0.0f, 15.0f}, turret_rotation_);
